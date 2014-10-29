@@ -11,25 +11,47 @@ shinyServer(function(input, output) {
            "something else" = se)
   })
   # Return the hydrophobicity value of a primary sequence 11 amino acids long
-  y <- function(x, primary_sequence)
+  iscore <- function(x, primary_sequence) {
     scores <- c(4.5, 4.2, 3.8, 2.8, 2.5, 1.9, 1.8, -0.4, -0.7, -0.9, -0.8, -1.3, -1.6, -3.2, -3.5, -3.5, -3.5, -3.5, -3.9, -4.5)
-    names(scores) <- c('I', 'V', 'L', 'F','C','M','A', 'G', 'T',
-                        'W', 'S', 'Y', 'P', 'H', 'E', 'Q', 'D', 'N', 'K', 'R')
-    list_to_sum <- []
-    for (n in (x-6):(x+5){
-      list_to_sum.append(scores[substr(primary_sequence, n, n)])
-    return round(sum(list_to_sum)/11,1)
+    names(scores) <- c('I', 'V', 'L', 'F','C','M','A', 'G', 'T','W', 'S', 'Y', 'P', 'H', 'E', 'Q', 'D', 'N', 'K', 'R')
+    list_to_sum <- c()
+    start <- x-6
+    end <- x+4
+    for (n in start:end){
+      list_to_sum <- c(list_to_sum, scores[substr(primary_sequence, n, n)])
     }
+    result <- round(sum(list_to_sum)/11,1)
+    result
+  }
+  
+  #Get y values of plot, ie the hydrophobicity scores
+  gety <- function(primary_sequence) {
+    end = nchar(primary_sequence)-5
+    fn <- function(x) {iscore(x, primary_sequence)}
+    L = c(sapply(7:end, fn))
+    L
+  }
+  
+  #Get x values of plot, ie the sequence number
+  getx <- function(primary_sequence){
+    L <- 7:(nchar(primary_sequence)-5)
+    L
+  }
+  
+  #Plot the values as a line graph, with straight line at y=0
+  summary <- function(primary_sequence){
+    plot(getx(primary_sequence), gety(primary_sequence), type = "n", xlab="Sequence Number", ylab = "Hydropathic Index")
+    lines(getx(primary_sequence), gety(primary_sequence), type = "l")
+    abline(0,0)
+  }
+  
 
-    
+  
   # Generate a summary of the dataset
-  output$summary <- renderPrint({
-    dataset <- datasetInput()
-    summary(dataset)
+  output$summary <- renderPlot({
+    plot(getx(input$sequence), gety(input$sequence), type = "n", xlab="Sequence Number", ylab = "Hydropathic Index", ylim = c(-4,4))
+    lines(getx(input$sequence), gety(input$sequence), type = "l")
+    abline(0,0)
   })
   
-  # Show the first "n" observations
-  output$view <- renderTable({
-    head(datasetInput(), n = input$obs)
-  })
 })
